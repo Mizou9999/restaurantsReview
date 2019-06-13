@@ -1,3 +1,7 @@
 export const init = () => {
-  document.querySelector('body').innerHTML = '<h1>Hello World! 🌍</h1>'
+   const appElement=  document.querySelector('body')
+   
+   appElement.innerHTML = '<div id="app"> </div>'
+
+   return document.getElementById('app')
 }

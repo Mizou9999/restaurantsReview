@@ -29,4 +29,11 @@ npm run build
 ```
 This will replace the old bundle with a new one in the `/dist` directory.
 
-### Create an issue if you have any question.
+### Modify proxy
+```
+/webpack.config.js
+```
+
+Change `target` path
+
+More info @ https://webpack.js.org/configuration/dev-server/#devserverproxy
