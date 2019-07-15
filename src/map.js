@@ -1,12 +1,14 @@
 import jsonData from './restaurants.json'
-import { guid, addRestaurant, placeMarkerOnRightClick } from './functions'
+import { guid, addRestaurant, placeMarkerOnRightClick, generateAvrageRating } from './functions'
+
 //google map section 
 //init map 
 let map
 let restaurants = jsonData
 restaurants.forEach(element => {
-    element.imgSrc = 'https://source.unsplash.com/500x300/?food'
-    console.log(element)
+    element.imgSrc = 'https://source.unsplash.com/300x300/?food'
+    element.avrageRating = generateAvrageRating(element)
+
 })
 
 let restaurantsInJsonFileId = []
@@ -14,7 +16,6 @@ const activeMarkerId = {
     id: '',
     infowindow: {}
 }
-
 
 export const createMap = () => {
     function initMap() {
@@ -26,7 +27,7 @@ export const createMap = () => {
             zoom: 14,
             center: myLocation
         };
-        // user location
+
 
         // added the map to the HTML
         map = new google.maps.Map(document.getElementById("map"), option);
@@ -35,56 +36,39 @@ export const createMap = () => {
         let marker = new google.maps.Marker({
             position: myLocation,
             map: map,
-            title: "Hello World!"
+            title: "Marker"
         });
         marker.setMap(map);
         let request = {
             location: myLocation,
-            radius: '1000',
+            radius: '2000',
             type: ['restaurant']
         }
         let service = new google.maps.places.PlacesService(map)
         service.nearbySearch(request, callback)
-            // add unique id to the restaurants in the json File and show the restaurants on the map + div
+        // add unique id to the restaurants in the json File and show the restaurants on the map + div
         restaurants.forEach(restaurant => {
-                restaurant.id = `id${guid()}`
-                addRestaurant(restaurant)
-                displayInfoWhenClickOnMarker(restaurant)
-                restaurantsInJsonFileId.push(restaurant.id)
-            })
-            //------------------------- test-------------------------------------------------
-            // let the user add the marker + new restaurant when right cick on the map  
-        map.addListener('rightclick', function(e) {
-            placeMarkerOnRightClick(e.latLng, map)
-
+            restaurant.id = `id${guid()}`
+            addRestaurant(restaurant)
+            displayInfoWhenClickOnMarker(restaurant)
+            restaurantsInJsonFileId.push(restaurant.id)
 
         })
-
+        //------------------------- test-------------------------------------------------
+        // let the user add the marker + new restaurant when right cick on the map  
+        map.addListener('rightclick', function (e) {
+            placeMarkerOnRightClick(e.latLng, map)
+        })
     }
     window.initMap = initMap;
     return (map, restaurants);
-
-};
-
-
-
+}
 function callback(results, status) {
     if (status == google.maps.places.PlacesServiceStatus.OK) {
         results.forEach(restaurant => {
-
-            //createMarker(restaurant)
-            // i cant get ratings this way            
+            console.log(restaurant)
         })
     }
-}
-
-
-
-function createMarker(place) {
-    let marker = new google.maps.Marker({
-        map: map,
-        position: place.geometry.location
-    })
 }
 
 function displayInfoWhenClickOnMarker(restaurant) {
@@ -93,11 +77,11 @@ function displayInfoWhenClickOnMarker(restaurant) {
         lng: restaurant.long
     }
     const marker = new google.maps.Marker({
-            position: restaurantGeo,
-            map: map,
-            title: restaurant.restaurantName
-        })
-        //<img src="https://source.unsplash.com/500x300/?food" class="card-img-top" alt="...">
+        position: restaurantGeo,
+        map: map,
+        title: restaurant.restaurantName
+    })
+    //<img src="https://source.unsplash.com/500x300/?food" class="card-img-top" alt="...">
     const restaurantItem = document.getElementById(restaurant.id)
 
     // CREATE : the info window that show up when user click on a marker 
@@ -107,16 +91,15 @@ function displayInfoWhenClickOnMarker(restaurant) {
     const img = document.createElement('img')
     img.classList.add('card-img-top')
     if (restaurant.photoRestaurant) {
-        img.src = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=500&photoreference=${restaurant.photoRestaurant}&key=AIzaSyBll93EcgKSTvPgM3554BIvyutwDjFdWaw`
+        img.src = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=80&maxheight=80&photoreference=${restaurant.photoRestaurant}&key=AIzaSyAyPeFfGWQ4_5NJ5VcIQOPCfo24i0u3JMQ`
     } else {
         img.src = restaurant.imgSrc
     }
     infoContent.appendChild(img)
-    infoContent.innerHTML += `
-  
+    infoContent.innerHTML += `  
     <div class="card-body">
       <h5 class="card-title"> ${restaurant.restaurantName} </h5>
-      <p class="card-text"> ${restaurant.adress} </p>      
+      <p class="card-text"> ${restaurant.address} </p>      
     </div>
     </div> `
     const infowindow = new google.maps.InfoWindow({
@@ -137,14 +120,14 @@ function displayInfoWhenClickOnMarker(restaurant) {
 
         activeMarkerId.id = restaurant.id
         activeMarkerId.infowindow = infowindow
-            // add infoWindow on map 
-            // show when clicked on marker
+        // add infoWindow on map 
+        // show when clicked on marker
     })
 
     google.maps.event.addListener(map, 'click', () => {
         restaurantItem.classList.remove('clickDiv')
         console.log(restaurant.id, 'close')
-            // close info window when clicked on the map 
+        // close info window when clicked on the map 
         infowindow.close()
     })
 }
@@ -154,9 +137,8 @@ function fetchGooglePlacesData(url, photo) {
     fetch(url)
         .then(datas => datas.json())
         .then(restaurant => {
-            console.log(restaurant)
             const obj = {
-                adress: restaurant.result.formatted_address,
+                address: restaurant.result.formatted_address,
                 id: restaurant.result.reference,
                 lat: restaurant.result.geometry.location.lat,
                 long: restaurant.result.geometry.location.lng,
@@ -168,9 +150,9 @@ function fetchGooglePlacesData(url, photo) {
                 internationalPhone: restaurant.result.international_phone_number,
                 website: restaurant.result.website,
                 openNow: restaurant.result.opening_hours.open_now,
-                type: restaurant.result.types
+                type: restaurant.result.types,
+                stars: restaurant.result.rating
             }
-
             if (restaurant.result.reviews) {
                 restaurant.result.reviews.forEach(comment => {
                     obj.ratings.push({
@@ -184,71 +166,72 @@ function fetchGooglePlacesData(url, photo) {
                     comment: 'there is no reviews for this restaurant yet!'
                 })
             }
-
+            //console.log(obj)
             addRestaurant(obj)
-                //console.log(obj)
-
             displayInfoWhenClickOnMarker(obj)
+            newRestaurants.push(obj)
         })
 }
-
+let newRestaurants = []
 function getRestaurantDataFromGooglePlace() {
-    const nearbyUrl = 'api/maps/api/place/nearbysearch/json?location=48.8737815, 2.3501649&radius=1000&type=restaurant&key=AIzaSyBll93EcgKSTvPgM3554BIvyutwDjFdWaw'
+    const nearbyUrl = 'api/maps/api/place/nearbysearch/json?location=48.8737815, 2.3501649&radius=2000&type=restaurant&key=AIzaSyAyPeFfGWQ4_5NJ5VcIQOPCfo24i0u3JMQ'
 
     fetch(nearbyUrl)
         .then(response => response.json())
         .then(data => {
             data.results.forEach(element => {
 
-                const detailsUrl = `api/maps/api/place/details/json?placeid=${element.reference}&key=AIzaSyBll93EcgKSTvPgM3554BIvyutwDjFdWaw`
+                const detailsUrl = `api/maps/api/place/details/json?placeid=${element.reference}&key=AIzaSyAyPeFfGWQ4_5NJ5VcIQOPCfo24i0u3JMQ`
 
                 let restaurantPhoto
 
                 if (element.photos[0].photo_reference) {
                     restaurantPhoto = element.photos[0].photo_reference
                 } else {
-                    restaurantPhoto = 'smokke'
+                    restaurantPhoto = 'Nothing'
                 }
                 fetchGooglePlacesData(detailsUrl, restaurantPhoto)
-
             })
 
         })
 }
 
 getRestaurantDataFromGooglePlace()
+console.log(newRestaurants)
+export { newRestaurants }
+jsonData.forEach(restaurant => {
+    newRestaurants.push(restaurant)
 
-// shitty function
-function displayinfoMarker(restaurant) {
-    myLocation = {
-        lat: restaurant.lat,
-        lng: restaurant.long
-    }
-    let marker = new google.maps.Marker({
-        position: myLocation,
-        map: map,
-        title: "Hello World!"
-    });
-    marker.setMap(map);
-}
+})
 
 
 
-// "reviews" : [
-//     {
-//        "author_name" : "Robert Ardill",
-//        "author_url" : "https://www.google.com/maps/contrib/106422854611155436041/reviews",
-//        "language" : "en",
-//        "profile_photo_url" : "https://lh3.googleusercontent.com/-T47KxWuAoJU/AAAAAAAAAAI/AAAAAAAAAZo/BDmyI12BZAs/s128-c0x00000000-cc-rp-mo-ba1/photo.jpg",
-//        "rating" : 5,
-//        "relative_time_description" : "a month ago",
-//        "text" : "Awesome offices. Great facilities, location and views. Staff are great hosts",
-//        "time" : 1491144016
-//     }
-//  ],
-// https://www.randomuser.me/ to get random user pictures
 
-// search restaurants places function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // user location 
 // navigator.geolocation.getCurrentPosition(
@@ -277,3 +260,6 @@ function displayinfoMarker(restaurant) {
 //         pos
 //     );
 // }
+
+
+// all work find next step is i target the div who display the restaurants on the right side and clear it and display new restaurants based on the rating system

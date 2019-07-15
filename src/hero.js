@@ -1,10 +1,6 @@
 import Bg from './bgFinal.jpg'
-
-
-
-let rest
 export const hero = (element) => {
-    // first div that should hide
+    // first div that should be invisible
     const bgImg = new Image()
     bgImg.src = Bg
     const bigContainer = document.createElement('div')
@@ -25,7 +21,6 @@ export const hero = (element) => {
     const col = document.createElement('div')
     col.classList.add('col-lg-12', 'text-center', 'text-container', 'mt-5', 'pt-5')
     row.appendChild(col)
-
 
     const title = document.createElement('h1')
     title.innerHTML = 'Find the best restaurants Near you!'
@@ -50,33 +45,12 @@ export const hero = (element) => {
     const newDivCol = document.createElement('div')
     newDivCol.classList.add('col-md-6', 'col-sm-12', 'offset-md-3')
     newDivRow.appendChild(newDivCol)
-    const searchArea = document.createElement('div')
-    searchArea.classList.add('input-group', 'mb-3', 'mt-5')
-    newDivCol.appendChild(searchArea)
-    const input = document.createElement('input')
-    input.classList.add('form-control')
-    input.placeholder = 'Search for a Restaurant'
-    input.setAttribute('aria-label', "Recipient's username")
-    input.setAttribute('aria-describedby', "button-addon2")
-    input.type = 'text'
-    searchArea.appendChild(input)
-
-    const inputGroup = document.createElement('div')
-    inputGroup.classList.add('input-group-append')
-    searchArea.appendChild(inputGroup)
-
-    const searchB = document.createElement('button')
-    searchB.classList.add('btn', 'btn-primary')
-    searchB.innerHTML = 'Search'
-
-    inputGroup.appendChild(searchB)
-
-
 
 
     // CREATE MAP and RESTAURANTS div 
     const mapContainer = document.createElement('div')
     mapContainer.classList.add('container-fluid', 'mt-5')
+    mapContainer.id = 'bigContainer'
 
 
     // map div
@@ -101,24 +75,31 @@ export const hero = (element) => {
     mapRow.appendChild(restaurantsDiv)
     const restaurantDetail = document.createElement('div')
     restaurantDetail.id = 'restaurants-div'
+
+    const backDiv = document.createElement('div')
+    backDiv.classList.add('backBtnDiv', 'mt-2')
+
+    const backBtn = document.createElement('button')
+    backBtn.classList.add('btn', 'btn-danger', 'd-none')
+    backBtn.id = 'backBtn'
+    backBtn.innerText = 'Back to restaurants '
+    backDiv.appendChild(backBtn)
+    restaurantsDiv.appendChild(backDiv)
     restaurantsDiv.appendChild(restaurantDetail)
     const commentsAndDetailsDiv = document.createElement('div')
     commentsAndDetailsDiv.classList.add('d-none')
     commentsAndDetailsDiv.id = 'comments'
     restaurantsDiv.appendChild(commentsAndDetailsDiv)
-
-
-
-
     newDiv.appendChild(mapContainer)
     bigContainer.appendChild(newDivContainer)
-
-    btn.onclick = function() {
+    btn.onclick = function () {
         newDiv.classList.remove('d-none')
+
         imgContainer.classList.add('d-none')
         imgContainer.classList.remove('d-flex')
+
     }
     element.appendChild(bigContainer)
-    return restaurantsDiv
+    return (restaurantsDiv, backBtn)
 
 }
